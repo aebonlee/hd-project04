@@ -1,0 +1,25 @@
+{
+  "defaultType": "40ft",
+  "targetLoadRate": 0.7,
+  "scenarioRates": [0.65, 0.7, 0.75],
+  "carryOver": false,
+  "carryOverThreshold": 0.5,
+  "types": {
+    "40ft": {
+      "name": "40ft 일반(Dry)",
+      "innerLengthMm": 12032,
+      "innerWidthMm": 2352,
+      "innerHeightMm": 2395,
+      "maxCbm": 67.7,
+      "maxWeightKg": 26780
+    },
+    "40HC": {
+      "name": "40ft 하이큐브(HC)",
+      "innerLengthMm": 12032,
+      "innerWidthMm": 2352,
+      "innerHeightMm": 2698,
+      "maxCbm": 76.4,
+      "maxWeightKg": 26460
+    }
+  }
+}
