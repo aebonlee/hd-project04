@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CKD 컨테이너 수량 산출 자동화 — 브라질/인도법인</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- SheetJS: 엑셀 업로드/내보내기 -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Chart.js: 차트 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>CKD 컨테이너 수량 산출 자동화</h1>
+      <p class="subtitle">브라질/인도법인 18개월 생산계획 기반 · 40ft 컨테이너 소요량 · 목표 적재율 70%</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- 1. 데이터 입력 -->
+    <section class="card" id="uploadCard">
+      <h2>1. 데이터 입력</h2>
+      <p class="desc">
+        SAP에서 다운로드한 엑셀 3종(생산계획, 모델-박스 구성, 박스 마스터)을 업로드하세요.
+        컬럼 형식은 README를 참고하세요. 파일이 없다면 <b>샘플 데이터 불러오기</b>로 바로 체험할 수 있습니다.
+      </p>
+      <div class="upload-grid">
+        <div class="upload-item">
+          <label class="name" for="filePlan">① 생산계획 (법인별)</label>
+          <p class="hint">plan_브라질.xlsx / plan_인도.xlsx — 여러 파일 동시 선택 가능</p>
+          <input type="file" id="filePlan" accept=".xlsx,.xls" multiple>
+          <span class="status" id="statusPlan">대기 중</span>
+        </div>
+        <div class="upload-item">
+          <label class="name" for="fileModelBox">② 모델-박스 구성</label>
+          <p class="hint">model_box.xlsx — 모델 1대당 박스 종류별 수량</p>
+          <input type="file" id="fileModelBox" accept=".xlsx,.xls">
+          <span class="status" id="statusModelBox">대기 중</span>
+        </div>
+        <div class="upload-item">
+          <label class="name" for="fileBoxMaster">③ 박스 마스터</label>
+          <p class="hint">box_master.xlsx — 박스 치수/부피/중량/혼적 그룹</p>
+          <input type="file" id="fileBoxMaster" accept=".xlsx,.xls">
+          <span class="status" id="statusBoxMaster">대기 중</span>
+        </div>
+      </div>
+      <div class="sample-row">
+        <button type="button" class="btn btn-primary" id="btnSample">샘플 데이터 불러오기</button>
+        <span class="note" style="color:#898781; font-size:12.5px;">
+          샘플: 모델 6개(법인당 3개) · 박스 7종 · 2026-09 ~ 2028-02 (18개월)
+        </span>
+      </div>
+      <div class="notice error hidden" id="errorNotice"></div>
+    </section>
+
+    <!-- 2. 산출 조건 -->
+    <section class="card" id="settingsCard">
+      <h2>2. 산출 조건</h2>
+      <p class="desc">조건을 바꾸면 결과가 즉시 재계산됩니다. 규격 기본값은 <code>config/container.json</code>에서 관리합니다.</p>
+      <div class="settings-grid">
+        <div class="setting">
+          <label class="name" for="rateSlider">목표 적재율</label>
+          <div class="rate-control">
+            <input type="range" id="rateSlider" min="50" max="95" step="1" value="70">
+            <input type="number" id="rateInput" min="50" max="95" step="1" value="70">
+            <span class="unit">%</span>
+          </div>
+          <p class="note">부피·중량 한도 = 컨테이너 규격 × 적재율</p>
+        </div>
+        <div class="setting">
+          <label class="name" for="typeSelect">컨테이너 타입</label>
+          <select id="typeSelect"></select>
+          <p class="note" id="typeSpec"></p>
+        </div>
+        <div class="setting">
+          <label class="name">남는 박스 처리</label>
+          <label class="check">
+            <input type="checkbox" id="carryOverCheck">
+            덜 찬 컨테이너는 다음 달로 이월 (기본: 해당 월 추가 확보)
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- 결과 없음 안내 -->
+    <div class="empty-state" id="emptyState">
+      데이터 3종을 업로드하거나 <b>샘플 데이터 불러오기</b>를 누르면 산출 결과가 표시됩니다.
+    </div>
+
+    <!-- 3. 결과 -->
+    <div id="resultArea" class="hidden">
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <section class="card">
+        <h2>3. 법인별 × 월별 컨테이너 소요 (18개월)</h2>
+        <p class="desc" id="mainChartDesc"></p>
+        <div class="chart-box tall"><canvas id="chartMonthly"></canvas></div>
+      </section>
+
+      <section class="card">
+        <h2>4. 월별 컨테이너 소요 표</h2>
+        <p class="desc">2차(조합) = 혼적 그룹·부피·중량 제약 bin-packing 결과(확보 기준). 1차(단순) = 총 부피 기준 참고치.</p>
+        <div class="table-scroll" id="monthlyTableWrap"></div>
+      </section>
+
+      <section class="card">
+        <h2>5. 박스 종류별 물량</h2>
+        <p class="desc">18개월 합계 기준, 법인별 CKD 박스 소요 수량입니다.</p>
+        <div class="chart-box"><canvas id="chartBoxes"></canvas></div>
+      </section>
+
+      <section class="card">
+        <h2>6. 적재율 시나리오 비교 (65% / 70% / 75%)</h2>
+        <p class="desc" id="scenarioDesc"></p>
+        <div class="chart-box"><canvas id="chartScenario"></canvas></div>
+        <div class="table-scroll" style="margin-top:14px;" id="scenarioTableWrap"></div>
+      </section>
+
+      <section class="card">
+        <h2>7. 컨테이너별 적재 구성 내역 (검증용)</h2>
+        <p class="desc">월을 눌러 펼치면 컨테이너 한 대 한 대의 박스 구성과 적재율(부피/중량)을 확인할 수 있습니다.</p>
+        <div class="corp-tabs" id="corpTabs"></div>
+        <div id="manifestArea"></div>
+      </section>
+
+      <section class="card">
+        <h2>8. 물류팀 전달용 엑셀 내보내기</h2>
+        <div class="export-row">
+          <button type="button" class="btn btn-export" id="btnExport">엑셀 다운로드 (요약 + 월별 상세)</button>
+          <span class="note">요약 시트(월별·법인별 소요/적재율/시나리오) + 월별 상세 시트(컨테이너별 적재 구성)</span>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      CKD 컨테이너 수량 산출 자동화 · 생산계획 → 박스 소요 집계 → FFD 적재 조합 → 월별 컨테이너 산출
+      · 산출 규칙 상세는 README 참조
+    </div>
+  </footer>
+
+  <script src="js/engine.js"></script>
+  <script src="js/sample-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
