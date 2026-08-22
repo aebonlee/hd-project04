@@ -95,7 +95,9 @@
 
   /**
    * 월별·법인별 박스 종류별 필요 수량을 집계한다.
-   * @returns { corps, months, demand } — demand[corp][month][boxCode] = 수량
+   * 구성 마스터에 없는 모델은 집계에서 제외되며 unmatchedModels로 보고한다.
+   * @returns { corps, months, demand, unmatchedModels }
+   *   — demand[corp][month][boxCode] = 수량, unmatchedModels = 제외된 모델명 배열
    */
   function aggregateBoxes(plan, modelBox) {
     var corps = collectCorps(plan);
@@ -114,9 +116,18 @@
       months.forEach(function (mo) { demand[corp][mo] = {}; });
     });
 
+    var unmatchedSeen = {};
+    var unmatchedModels = [];
     plan.forEach(function (row) {
       var boxes = comp[row.model];
-      if (!boxes) return; // 구성 마스터에 없는 모델은 건너뜀(검증은 validateInput에서)
+      if (!boxes) {
+        // 구성 마스터에 없는 모델은 산출에서 제외하고 목록으로 보고한다(UI 경고용)
+        if (!unmatchedSeen[row.model]) {
+          unmatchedSeen[row.model] = true;
+          unmatchedModels.push(row.model);
+        }
+        return;
+      }
       Object.keys(row.qty || {}).forEach(function (mo) {
         var units = Number(row.qty[mo]) || 0;
         if (units <= 0) return;
@@ -127,7 +138,7 @@
       });
     });
 
-    return { corps: corps, months: months, demand: demand };
+    return { corps: corps, months: months, demand: demand, unmatchedModels: unmatchedModels };
   }
 
   /* ------------------------------------------------------------------ */
@@ -355,7 +366,8 @@
       corps: agg.corps,
       demand: agg.demand,
       byCorp: byCorp,
-      boxTotals: boxTotals
+      boxTotals: boxTotals,
+      unmatchedModels: agg.unmatchedModels // 구성 마스터에 없어 산출에서 제외된 모델
     };
   }
 
@@ -400,16 +412,13 @@
   /* 6) 입력 검증                                                         */
   /* ------------------------------------------------------------------ */
 
-  /** 계획의 모델이 구성 마스터에 있는지, 구성의 박스코드가 박스 마스터에 있는지 검증. */
+  /**
+   * 구성의 박스코드가 박스 마스터에 있는지 검증(계산 불가능한 치명 오류만).
+   * 생산계획에만 있고 구성 마스터에 없는 모델은 오류가 아니라
+   * calculate() 결과의 unmatchedModels로 보고한다(산출에서 제외됨을 경고).
+   */
   function validateInput(input) {
     var errors = [];
-    var modelSet = {};
-    input.modelBox.forEach(function (r) { modelSet[r.model] = true; });
-    input.plan.forEach(function (r) {
-      if (!modelSet[r.model]) {
-        errors.push('생산계획의 모델 "' + r.model + '"이(가) 모델-박스 구성 마스터에 없습니다.');
-      }
-    });
     input.modelBox.forEach(function (r) {
       if (!input.boxMaster[r.boxCode]) {
         errors.push('모델 "' + r.model + '"의 박스코드 "' + r.boxCode + '"이(가) 박스 마스터에 없습니다.');

@@ -183,7 +183,35 @@ test('적재율이 높을수록 컨테이너 수가 같거나 줄어든다', () 
   scen.forEach((s) => assert.ok(s.totalContainers > 0));
 });
 
-console.log('\n[6] 실제 샘플 데이터 스모크 테스트');
+console.log('\n[6] 미매칭 모델 보고 — unmatchedModels');
+
+test('구성 마스터에 없는 모델은 unmatchedModels로 보고되고 산출에서 제외된다', () => {
+  const plan = [
+    { corp: '브라질', model: 'M1', qty: { '2026-09': 2 } },
+    { corp: '브라질', model: 'MX', qty: { '2026-09': 5 } }, // 마스터에 없음
+    { corp: '인도', model: 'MX', qty: { '2026-10': 3 } },   // 중복 — 1건으로 집계
+    { corp: '인도', model: 'MY', qty: { '2026-10': 1 } }    // 마스터에 없음
+  ];
+  const modelBox = [{ model: 'M1', boxCode: 'Q', perUnit: 1 }];
+  const res = engine.calculate({ plan, modelBox, boxMaster, container }, { loadRate: 0.7 });
+  // 중복 없이 등장 순서대로 보고된다
+  assert.deepStrictEqual(res.unmatchedModels, ['MX', 'MY']);
+  // 미매칭 모델의 물량은 집계(demand)에 포함되지 않는다
+  assert.deepStrictEqual(res.demand['브라질']['2026-09'], { Q: 2 });
+  assert.deepStrictEqual(res.demand['인도']['2026-10'], {});
+  // 모든 모델이 매칭되면 빈 배열
+  const ok = engine.calculate(
+    { plan: [plan[0]], modelBox, boxMaster, container }, { loadRate: 0.7 });
+  assert.deepStrictEqual(ok.unmatchedModels, []);
+  // validateInput은 미매칭 모델을 차단 오류로 보지 않는다(박스코드 누락만 오류)
+  assert.deepStrictEqual(engine.validateInput({ plan, modelBox, boxMaster }), []);
+  const badBox = engine.validateInput({
+    plan, modelBox: [{ model: 'M1', boxCode: 'ZZ', perUnit: 1 }], boxMaster
+  });
+  assert.strictEqual(badBox.length, 1);
+});
+
+console.log('\n[7] 실제 샘플 데이터 스모크 테스트');
 
 test('config/container.json 규격으로 샘플 데이터 전체 계산이 무결하다', () => {
   const configPath = path.join(__dirname, '..', 'config', 'container.json');

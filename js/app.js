@@ -93,6 +93,18 @@
     el.classList.remove('hidden');
   }
 
+  /** 비차단 경고 배너 표시(html이 비어 있으면 숨김). */
+  function showWarn(id, html) {
+    var el = $(id);
+    if (!html) {
+      el.classList.add('hidden');
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML = html;
+    el.classList.remove('hidden');
+  }
+
   /* ------------------------------------------------------------------ */
   /* 엑셀 파싱 (SheetJS)                                                  */
   /* ------------------------------------------------------------------ */
@@ -260,6 +272,14 @@
       carryOverThreshold: state.config.carryOverThreshold
     };
     state.result = engine.calculate(input, opts);
+
+    // 생산계획에는 있으나 구성 마스터에 없는 모델 → 산출 제외 경고(비차단)
+    var unmatched = state.result.unmatchedModels || [];
+    showWarn('warnNotice', unmatched.length === 0 ? '' :
+      '<b>주의</b> 생산계획에 있으나 박스 구성 마스터에 없는 모델 ' + unmatched.length + '건: ' +
+      esc(unmatched.join(', ')) +
+      ' — 해당 모델의 물량은 아래 산출 결과에서 <b>제외</b>되어 있습니다.');
+
     state.scenarios = engine.runScenarios(input, state.config.scenarioRates, {
       carryOver: state.carryOver,
       carryOverThreshold: state.config.carryOverThreshold
@@ -725,8 +745,20 @@
       return r.json();
     }).then(function (cfg) {
       applyConfig(cfg);
+      showWarn('configNotice', '');
       recompute();
-    }).catch(function () { /* 기본값 유지 */ });
+    }).catch(function () {
+      // 기본값(DEFAULT_CONFIG)으로 계속 동작하되, 사용자에게 보이도록 경고한다.
+      var isFile = location.protocol === 'file:';
+      showWarn('configNotice',
+        '<b>config/container.json 로드 실패 — 기본값 사용 중</b><br>' +
+        (isFile
+          ? 'file:// 프로토콜로 열면 브라우저 보안 정책상 설정 파일을 읽을 수 없는 것이 정상입니다. ' +
+            '코드에 내장된 동일한 기본값으로 동작하며, 설정 파일을 적용하려면 ' +
+            '<code>python3 -m http.server 8000</code> 등 로컬 서버로 실행하세요.'
+          : '설정 파일을 읽지 못해 코드에 내장된 기본값(40ft/40HC, 적재율 70%)으로 동작합니다. ' +
+            '파일 경로와 JSON 형식을 확인하세요.'));
+    });
 
     $('filePlan').addEventListener('change', function (e) {
       if (e.target.files.length) handlePlanFiles(e.target.files);
