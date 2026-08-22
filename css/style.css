@@ -128,6 +128,7 @@ main.wrap { padding-top: 22px; padding-bottom: 60px; }
 .notice { border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 14px; }
 .notice.error { background: var(--danger-bg); color: #8f2424; border: 1px solid #f0c9c9; }
 .notice.error ul { margin: 4px 0 0; padding-left: 18px; }
+.notice.warn { background: #fdf6e7; color: #7a5410; border: 1px solid #efdcae; }
 .hidden { display: none !important; }
 
 /* ---------------- 설정 영역 ---------------- */

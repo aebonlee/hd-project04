@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CKD 컨테이너 수량 산출 자동화 — 브라질/인도법인</title>
   <link rel="stylesheet" href="css/style.css">
-  <!-- SheetJS: 엑셀 업로드/내보내기 -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- Chart.js: 차트 -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <!-- SheetJS 0.18.5: 엑셀 업로드/내보내기 (로컬 동봉 — 원본: https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js) -->
+  <script src="lib/xlsx.full.min.js"></script>
+  <!-- Chart.js 4.4.4: 차트 (로컬 동봉 — 원본: https://cdn.jsdelivr.net/npm/chart.js@4) -->
+  <script src="lib/chart.umd.min.js"></script>
 </head>
 <body>
   <header class="site-header">
@@ -53,12 +53,14 @@
         </span>
       </div>
       <div class="notice error hidden" id="errorNotice"></div>
+      <div class="notice warn hidden" id="warnNotice"></div>
     </section>
 
     <!-- 2. 산출 조건 -->
     <section class="card" id="settingsCard">
       <h2>2. 산출 조건</h2>
       <p class="desc">조건을 바꾸면 결과가 즉시 재계산됩니다. 규격 기본값은 <code>config/container.json</code>에서 관리합니다.</p>
+      <div class="notice warn hidden" id="configNotice"></div>
       <div class="settings-grid">
         <div class="setting">
           <label class="name" for="rateSlider">목표 적재율</label>
