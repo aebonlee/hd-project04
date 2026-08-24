@@ -294,12 +294,21 @@ body.hd.hd-app > main.wrap {
 }
 
 /* 격자 — minmax(0,1fr) 로 내용이 커도 칸이 삐져나오지 않게 (§9.7) */
-.hd.hd-app .grid, .hd.hd-app .kpi-grid, .hd.hd-app .stat-grid, .hd.hd-app .cards, .hd.hd-app .card-grid {
+/* 지표 한 줄 — 숫자만 들어가므로 좁아도 된다.
+   195px 이면 1280px 폭에 여섯 칸이 들어간다. 230px 이면 다섯 칸에서 끊겨
+   마지막 한 칸이 다음 줄에 혼자 남는다(사업장 6곳에서 실제로 그랬다). */
+.hd.hd-app .kpi-grid, .hd.hd-app .stat-grid {
   display: grid;
-  /* 195px 이면 1280px 폭에 여섯 칸이 들어간다. 230px 이면 다섯 칸에서 끊겨
-     마지막 한 칸이 다음 줄에 혼자 남는다(사업장 6곳에서 실제로 그랬다). */
   grid-template-columns: repeat(auto-fit, minmax(min(195px, 100%), 1fr));
   gap: 14px;
+}
+
+/* 내용이 든 카드 묶음 — 제목·설명·태그·버튼이 들어가므로 넓어야 읽힌다.
+   지표 카드와 같은 값(195px)을 쓰면 글이 든 카드가 잘게 쪼개져 읽을 수 없다. */
+.hd.hd-app .grid, .hd.hd-app .cards, .hd.hd-app .card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 16px;
 }
 
 /* 지표 카드 */
