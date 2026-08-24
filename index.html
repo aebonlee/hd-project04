@@ -5,12 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CKD 컨테이너 수량 산출 자동화 — 브라질/인도법인</title>
   <link rel="stylesheet" href="css/style.css">
+<!-- 공통 디자인 시스템. 반드시 기존 CSS 뒤에 온다 —
+     특정도가 같으면 나중에 온 쪽이 이기므로 순서가 곧 우선순위다. -->
+<link rel="stylesheet" href="css/hd-theme.css">
   <!-- SheetJS 0.18.5: 엑셀 업로드/내보내기 (로컬 동봉 — 원본: https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js) -->
   <script src="lib/xlsx.full.min.js"></script>
   <!-- Chart.js 4.4.4: 차트 (로컬 동봉 — 원본: https://cdn.jsdelivr.net/npm/chart.js@4) -->
   <script src="lib/chart.umd.min.js"></script>
 </head>
-<body>
+<body class="hd hd-app">
   <header class="site-header">
     <div class="wrap">
       <h1>CKD 컨테이너 수량 산출 자동화</h1>
