@@ -706,3 +706,44 @@ body.hd.hd-app > main.wrap {
   .hd.hd-app .card, .hd.hd-app .panel { border-width: 2px; }
   .hd.hd-app .badge, .hd.hd-app .tag, .hd.hd-app .pill { border: 1px solid currentColor; }
 }
+
+/* ── 어두운 헤더 안에 놓인 카드·지표 ─────────────────────────────────────
+ * 헤더는 짙은 배경이다. 거기 놓인 상자에 흰 면을 칠하면,
+ * 그 안 글자는 헤더를 따라 흰색으로 남아 **흰 바탕에 흰 글자**가 된다.
+ * 실제로 hd-04 히어로의 통계 상자 네 개가 통째로 비어 보였다.
+ * 헤더 안에서는 반투명 면을 쓰고 글자는 밝게 둔다. */
+body.hd.hd-app > header .stat,
+body.hd.hd-app > header .stat-card,
+body.hd.hd-app > header .kpi,
+body.hd.hd-app > header .kpi-card,
+body.hd.hd-app > header .card,
+body.hd.hd-app > header .panel,
+body.hd.hd-app > header .box {
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .24);
+  box-shadow: none;
+  color: #fff;
+}
+/* 왼쪽 강조 막대는 짙은 배경에서 잘 안 보이고 면만 지저분해진다 */
+body.hd.hd-app > header .stat::after,
+body.hd.hd-app > header .stat-card::after,
+body.hd.hd-app > header .kpi::after,
+body.hd.hd-app > header .kpi-card::after { display: none; }
+
+body.hd.hd-app > header .stat b,
+body.hd.hd-app > header .stat strong,
+body.hd.hd-app > header .stat .v,
+body.hd.hd-app > header .stat .value,
+body.hd.hd-app > header .stat-card .stat-value { color: #fff; }
+
+body.hd.hd-app > header .stat span,
+body.hd.hd-app > header .stat .k,
+body.hd.hd-app > header .stat .label,
+body.hd.hd-app > header .stat-card .stat-label { color: rgba(255, 255, 255, .82); }
+
+body.hd.hd-app > header .stat:hover,
+body.hd.hd-app > header .stat-card:hover,
+body.hd.hd-app > header .kpi:hover {
+  border-color: rgba(255, 255, 255, .45);
+  background: rgba(255, 255, 255, .18);
+}
