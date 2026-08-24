@@ -158,14 +158,74 @@ html, body.hd.hd-app { overflow-x: hidden; }
 
 /* ------------------------------------------------------------ 앱 골격 --- */
 
-.hd.hd-app .topbar, .hd.hd-app header.topbar, .hd.hd-app .app-header, .hd.hd-app .site-header {
+/* ⚠ 페이지 최상단 헤더(body 의 직계 자식)만 칠한다.
+   `.topbar` 만 보고 칠하면 안 된다 — 어떤 프로젝트는 본문 안쪽 제목 줄에도
+   같은 이름을 쓴다(hd-project09). 거기까지 칠하면 그 프로젝트가 정해 둔
+   짙은 제목 색이 그대로 남아 배경과 같은 계열이 되고 글자가 사라진다. */
+body.hd.hd-app > header {
   background: linear-gradient(180deg, var(--accent-deep), var(--accent));
   color: var(--on-accent);
   border-bottom: 1px solid color-mix(in srgb, var(--accent-deep) 70%, #000);
   box-shadow: var(--hd-shadow);
+  padding: 14px 0;
 }
-.hd.hd-app .topbar :where(h1, h2, .brand-text, .subtitle, .sub) { color: inherit; }
-.hd.hd-app .topbar :where(a) { color: inherit; }
+body.hd.hd-app > header > *:not(.inner):not(.wrap):not(.topbar-inner) {
+  padding-left: var(--container-pad);
+  padding-right: var(--container-pad);
+}
+
+/* 헤더 안 글자는 전부 밝게.
+   프로젝트마다 부제에 `.sub` `.subtitle` `.muted` `small` 을 제각각 쓰는데,
+   그 색이 어두운 회색으로 남아 그라디언트에 묻히는 것이 가장 흔한 가독성 사고였다.
+   특정도를 넉넉히 올려 확실히 이기게 한다. */
+body.hd.hd-app > header h1,
+body.hd.hd-app > header h2,
+body.hd.hd-app > header h3,
+body.hd.hd-app > header .brand-text,
+body.hd.hd-app > header a { color: #fff; }
+
+body.hd.hd-app > header p,
+body.hd.hd-app > header small,
+body.hd.hd-app > header span,
+body.hd.hd-app > header label,
+body.hd.hd-app > header .sub,
+body.hd.hd-app > header .subtitle,
+body.hd.hd-app > header .muted,
+body.hd.hd-app > header .hint,
+body.hd.hd-app > header .note,
+body.hd.hd-app > header .data-status,
+body.hd.hd-app > header .desc {
+  /* 흰색보다 살짝 낮춰 제목과 층을 만든다. 이 값에서도 대비는 넉넉하다. */
+  color: rgba(255, 255, 255, .82);
+}
+
+/* 헤더 안 버튼·입력은 배경이 어두우므로 따로 잡는다 */
+body.hd.hd-app > header .btn,
+body.hd.hd-app > header button {
+  background: rgba(255, 255, 255, .12);
+  border-color: rgba(255, 255, 255, .32);
+  color: #fff;
+}
+body.hd.hd-app > header .btn:hover,
+body.hd.hd-app > header button:hover {
+  background: rgba(255, 255, 255, .22);
+  border-color: #fff;
+}
+body.hd.hd-app > header .btn.active,
+body.hd.hd-app > header button.active,
+body.hd.hd-app > header .btn-primary,
+body.hd.hd-app > header .btn.primary {
+  background: #fff;
+  border-color: #fff;
+  color: var(--accent-deep);
+  font-weight: 700;
+}
+body.hd.hd-app > header select,
+body.hd.hd-app > header input {
+  background: rgba(255, 255, 255, .95);
+  border-color: rgba(255, 255, 255, .5);
+  color: var(--hd-ink);
+}
 
 .hd.hd-app .brand-mark {
   display: inline-flex; align-items: center; justify-content: center;
@@ -179,7 +239,13 @@ html, body.hd.hd-app { overflow-x: hidden; }
 }
 
 /* 폭 제한 — 배경은 전면, 내용만 가운데 (§9.1) */
-.hd.hd-app .inner, .hd.hd-app .wrap, .hd.hd-app .container, .hd.hd-app .layout, .hd.hd-app main.main, .hd.hd-app .page {
+/* ⚠ `.layout` `.page` `.container` `main.main` 같은 범용 이름에는 폭을 걸지 않는다.
+   사이드바 레이아웃이 그 이름을 쓰는 프로젝트가 있고(hd-project05·09),
+   거기에 `margin: auto` 를 걸면 본문이 사이드바 밑으로 들어가 글자가 잘린다.
+   실제로 05 를 그렇게 깨뜨렸다. 폭은 `.inner` 와 04 의 `.wrap` 에만 건다. */
+.hd.hd-app .inner,
+body.hd.hd-app > header.site-header > .wrap,
+body.hd.hd-app > main.wrap {
   max-width: calc(var(--container-wide) + 2 * var(--container-pad));
   padding-left: var(--container-pad);
   padding-right: var(--container-pad);
@@ -225,7 +291,9 @@ html, body.hd.hd-app { overflow-x: hidden; }
 /* 격자 — minmax(0,1fr) 로 내용이 커도 칸이 삐져나오지 않게 (§9.7) */
 .hd.hd-app .grid, .hd.hd-app .kpi-grid, .hd.hd-app .stat-grid, .hd.hd-app .cards, .hd.hd-app .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+  /* 195px 이면 1280px 폭에 여섯 칸이 들어간다. 230px 이면 다섯 칸에서 끊겨
+     마지막 한 칸이 다음 줄에 혼자 남는다(사업장 6곳에서 실제로 그랬다). */
+  grid-template-columns: repeat(auto-fit, minmax(min(195px, 100%), 1fr));
   gap: 14px;
 }
 
