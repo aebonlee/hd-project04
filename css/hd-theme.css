@@ -30,7 +30,7 @@
   --hd-ink-3:  #94a3b8;
 
   /* 강조 — 프로젝트마다 이 두 줄만 바꾸면 색이 바뀐다 */
-  /* hd-project04 — 물류 산출 */
+  /* hd-project04 */
   --accent:      #10685a;
   --accent-deep: #0b4a41;
   --accent-soft: #e4f2ef;
@@ -169,9 +169,14 @@ body.hd.hd-app > header {
   box-shadow: var(--hd-shadow);
   padding: 14px 0;
 }
-body.hd.hd-app > header > *:not(.inner):not(.wrap):not(.topbar-inner) {
-  padding-left: var(--container-pad);
-  padding-right: var(--container-pad);
+/* 헤더 안쪽 정렬선을 본문과 맞춘다.
+   안에 폭 제한 래퍼(.inner/.wrap/.topbar-inner)가 있는 헤더는 그 래퍼가 이미
+   가운데로 모으므로 건드리지 않는다. 래퍼 없이 h1 이 바로 들어 있는 헤더만
+   본문과 같은 지점에서 시작하게 한다 — 안 그러면 제목은 화면 끝에 붙고
+   본문 카드만 안쪽에 있어 좌측 선이 두 개로 보인다. */
+body.hd.hd-app > header:not(:has(> .inner)):not(:has(> .wrap)):not(:has(> .topbar-inner)) {
+  padding-left: max(var(--container-pad), calc((100% - var(--container-wide)) / 2));
+  padding-right: max(var(--container-pad), calc((100% - var(--container-wide)) / 2));
 }
 
 /* 헤더 안 글자는 전부 밝게.
