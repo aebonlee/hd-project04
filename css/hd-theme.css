@@ -121,8 +121,18 @@ html, body.hd.hd-app { overflow-x: hidden; }
 
 ::selection { background: var(--accent); color: var(--on-accent); }
 
-.hd.hd-app :where(a) { color: var(--accent); text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent); text-underline-offset: 3px; }
-.hd.hd-app :where(a:hover) { text-decoration-color: currentColor; }
+/* ⚠ 링크 색은 **클래스가 없는 순수 링크**에만 준다.
+   `a` 전체에 주면, 프로젝트가 색을 칠해 둔 항목까지 덮는다.
+   실제로 hd-project05 의 선택된 메뉴(`.nav-item.active`)는 짙은 남색 면에
+   흰 글자로 지정돼 있었는데, 여기에 강조색을 얹어 대비 1.56 이 되어
+   글자가 배경에 묻혔다. 특정도가 같으면 나중에 온 쪽이 이기기 때문이다.
+   네비·버튼 역할을 하는 링크는 대부분 클래스를 갖고 있으므로 이 조건으로 갈린다. */
+.hd.hd-app a:not([class]) {
+  color: var(--accent);
+  text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  text-underline-offset: 3px;
+}
+.hd.hd-app a:not([class]):hover { text-decoration-color: currentColor; }
 
 .hd.hd-app :where(h1, h2, h3, h4, h5, h6) {
   color: var(--hd-ink);
