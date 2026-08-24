@@ -57,6 +57,21 @@
   --container-prose:  860px;
   --container-pad:     20px;
 
+  /* 세로 리듬 — 간격을 다섯 단계로만 쓴다.
+     요소마다 제각각 정하면(12.6 · 14 · 15 · 20px …) 규칙이 없어 보이고,
+     새 요소를 넣을 때마다 눈대중으로 또 다른 값이 생긴다. */
+  --sp-1: 8px;    /* 목록 항목 사이 */
+  --sp-2: 14px;   /* 문단 사이 */
+  --sp-3: 22px;   /* 표·코드·안내 띠 위아래 */
+  --sp-4: 34px;   /* 소제목 위 */
+  --sp-5: 48px;   /* 큰 단락 사이 */
+
+  /* 한국어 줄간격.
+     한글은 받침 때문에 글자 높이가 커서 라틴 문자와 같은 값이면 답답하다.
+     본문 1.8, 제목은 줄이 길지 않으므로 1.35. */
+  --lh-body:  1.8;
+  --lh-tight: 1.35;
+
   --hd-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
              "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
   --hd-mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
@@ -108,7 +123,7 @@ body.hd.hd-app {
   color: var(--hd-ink);
   font-family: var(--hd-sans);
   font-size: 15px;
-  line-height: 1.65;
+  line-height: var(--lh-body);
   letter-spacing: -0.003em;
   -webkit-font-smoothing: antialiased;
   /* 한국어 워드랩 표준 — break-word 단독은 어절 중간이 끊긴다 */
@@ -757,3 +772,108 @@ body.hd.hd-app > header .kpi:hover {
   border-color: rgba(255, 255, 255, .45);
   background: rgba(255, 255, 255, .18);
 }
+
+/* ============================================================================
+ * 세로 리듬 — 마진·패딩·줄간격
+ * (2026-08-25 — 실제 계산값을 재서 잡았다)
+ *
+ * 재 보니 소제목의 위쪽 마진이 **0** 이었다. 테마의 `:where(h2)` 가
+ * `margin: 0 0 .5em` 을 주는데 특정도가 높아, 페이지가 따로 준 `margin-top` 을
+ * 눌러 버리고 있었다. 그래서 섹션이 앞 내용에 딱 붙어 층이 보이지 않았다.
+ * 아래 규칙은 `:where()` 를 쓰지 않아 그 문제가 다시 생기지 않는다.
+ * ========================================================================== */
+
+/* ── 문단 ─────────────────────────────────────────────────────────────── */
+.hd.hd-app p {
+  margin: 0 0 var(--sp-2);
+  line-height: var(--lh-body);
+}
+/* 문단이 이어질 때는 조금 더 붙여 한 덩어리로 읽히게 한다 */
+.hd.hd-app p + p { margin-top: calc(var(--sp-2) * -0.25); }
+
+/* ── 제목 ─────────────────────────────────────────────────────────────── */
+.hd.hd-app h1,
+.hd.hd-app h2,
+.hd.hd-app h3,
+.hd.hd-app h4 { line-height: var(--lh-tight); }
+
+/* 위가 넓고 아래가 좁아야 제목이 **아래 내용에 붙어** 한 덩어리로 보인다.
+   반대로 두면 제목이 앞 단락에 붙어 어디부터가 새 이야기인지 흐려진다. */
+.hd.hd-app h2 { margin: var(--sp-4) 0 var(--sp-2); }
+.hd.hd-app h3 { margin: var(--sp-3) 0 var(--sp-1); }
+.hd.hd-app h4 { margin: var(--sp-3) 0 var(--sp-1); }
+
+/* 컨테이너의 첫 요소는 위 마진을 없앤다 — 안 그러면 카드 위쪽이 텅 빈다 */
+.hd.hd-app .card > :first-child,
+.hd.hd-app .panel > :first-child,
+.hd.hd-app section > :first-child,
+.hd.hd-app main > :first-child,
+.hd.hd-app .guide > :first-child { margin-top: 0; }
+.hd.hd-app .card > :last-child,
+.hd.hd-app .panel > :last-child,
+.hd.hd-app .guide > :last-child { margin-bottom: 0; }
+
+/* ── 목록 ─────────────────────────────────────────────────────────────── */
+.hd.hd-app ul,
+.hd.hd-app ol {
+  margin: 0 0 var(--sp-2);
+  padding-left: 22px;
+  line-height: var(--lh-body);
+}
+/* 항목 사이를 벌린다. 붙어 있으면 여러 줄짜리 항목에서 어디가 한 항목인지 안 보인다. */
+.hd.hd-app li { margin-bottom: var(--sp-1); }
+.hd.hd-app li:last-child { margin-bottom: 0; }
+.hd.hd-app li > ul,
+.hd.hd-app li > ol { margin-top: var(--sp-1); margin-bottom: 0; }
+/* 목록 다음에 오는 문단은 한 칸 띄운다 */
+.hd.hd-app ul + p,
+.hd.hd-app ol + p { margin-top: var(--sp-2); }
+
+/* ── 표·코드·안내 띠 ──────────────────────────────────────────────────── */
+.hd.hd-app .table-wrap,
+.hd.hd-app .tablewrap,
+.hd.hd-app table,
+.hd.hd-app pre,
+.hd.hd-app .notice,
+.hd.hd-app .callout,
+.hd.hd-app .alert,
+.hd.hd-app .warn,
+.hd.hd-app .tip { margin: var(--sp-3) 0; }
+
+/* 표 안 글자는 촘촘해도 읽힌다 — 줄이 짧고 세로로 훑기 때문이다 */
+.hd.hd-app table td,
+.hd.hd-app .table td,
+.hd.hd-app .tbl td { line-height: 1.65; }
+
+/* 표 바로 앞 설명은 표에 붙여 둘이 한 덩어리로 보이게 */
+.hd.hd-app p + .table-wrap,
+.hd.hd-app p + .tablewrap,
+.hd.hd-app p + table { margin-top: var(--sp-1); }
+
+/* ── 큰 단락 ──────────────────────────────────────────────────────────── */
+.hd.hd-app section + section { margin-top: var(--sp-5); }
+.hd.hd-app .card + .card,
+.hd.hd-app .panel + .panel { margin-top: var(--sp-3); }
+
+/* ── 버튼 줄 ──────────────────────────────────────────────────────────── */
+.hd.hd-app .links,
+.hd.hd-app .btn-group,
+.hd.hd-app .actions { margin: var(--sp-3) 0 0; }
+
+/* ── 카드 안쪽 여백 ───────────────────────────────────────────────────── */
+.hd.hd-app .card,
+.hd.hd-app .panel { padding: 22px 24px; }
+@media (max-width: 640px) {
+  .hd.hd-app .card,
+  .hd.hd-app .panel { padding: 18px; }
+  .hd.hd-app h2 { margin-top: var(--sp-3); }
+  .hd.hd-app section + section { margin-top: var(--sp-4); }
+}
+
+/* ── 본문 폭 ──────────────────────────────────────────────────────────── */
+/* 한 줄이 너무 길면 눈이 다음 줄 첫 글자를 찾지 못한다.
+   산문은 860px 정도가 편하다(§9.1 장문 틀). */
+.hd.hd-app .guide,
+.hd.hd-app .prose { max-width: var(--container-prose); }
+.hd.hd-app .guide p,
+.hd.hd-app .prose p { line-height: 1.85; }   /* 읽기 전용 페이지는 조금 더 넉넉히 */
