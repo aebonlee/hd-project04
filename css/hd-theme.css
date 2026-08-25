@@ -877,3 +877,28 @@ body.hd.hd-app > header .kpi:hover {
 .hd.hd-app .prose { max-width: var(--container-prose); }
 .hd.hd-app .guide p,
 .hd.hd-app .prose p { line-height: 1.85; }   /* 읽기 전용 페이지는 조금 더 넉넉히 */
+/* ── 격자 안의 카드는 형제 여백을 쓰지 않는다 ──────────────────────────
+   위쪽 `.card + .card { margin-top: var(--sp-3) }` 는 카드를 **세로로 쌓을 때**
+   쓰라고 만든 것이다. 그런데 선택자가 부모를 가리지 않아 **격자 안에서도** 걸린다.
+
+   격자에서 이게 무슨 일을 하냐면 —
+     첫 칸은 여백이 없어 칸 높이를 꽉 채우고, 둘째부터는 22px 씩 밀려난다.
+     결과: **같은 줄인데 박스 위끝이 서로 안 맞고 세로 크기도 달라진다.**
+     (바닥은 같아서 언뜻 보면 이유를 못 찾는다)
+   간격은 이미 격자의 `gap` 이 주므로 여기서는 지우는 것이 맞다.
+
+   ⚠ 부모가 격자인지 CSS 로 직접 물을 수 없어 **이름으로 고른다.**
+      아래 목록은 12개 사이트를 실제로 재서 나온 것이다 —
+        cards(hd-04) · charts(01) · grid-2(05) · compare-layout(06)
+        · grid/span-5(09) · grid2(11)
+      새 격자를 만들면 이 목록에 걸리는 이름을 쓰거나, 여기에 추가할 것. */
+.hd.hd-app [class*="grid"]   > .card  + .card,
+.hd.hd-app [class*="grid"]   > .panel + .panel,
+.hd.hd-app [class*="cards"]  > .card  + .card,
+.hd.hd-app [class*="cards"]  > .panel + .panel,
+.hd.hd-app [class*="chart"]  > .card  + .card,
+.hd.hd-app [class*="chart"]  > .panel + .panel,
+.hd.hd-app [class*="layout"] > .card  + .card,
+.hd.hd-app [class*="layout"] > .panel + .panel,
+.hd.hd-app [class*="span-"]  > .card  + .card,
+.hd.hd-app [class*="span-"]  > .panel + .panel { margin-top: 0; }
