@@ -2,6 +2,10 @@
 
 > 🌐 **배포 페이지: [https://aebonlee.github.io/hd-project04/](https://aebonlee.github.io/hd-project04/)** · 저장소: https://github.com/aebonlee/hd-project04
 
+> 🗄️ **Supabase 를 붙이려면 → [`SUPABASE-설정.md`](SUPABASE-설정.md)**
+> 데이터베이스는 **수강생 본인 계정**에 만듭니다. 계정 만들기부터 확인까지 단계별로 적어 두었습니다.
+
+
 브라질·인도 법인의 **18개월 생산계획(엑셀)**, **모델별 CKD 박스 구성**, **박스 규격 마스터**를
 입력받아 40ft 컨테이너 적재 규칙(목표 적재율 70%)에 따라 **월별 필요 컨테이너 수량을 자동
 산출**하고, 물류팀 전달용 엑셀로 내보내는 도구입니다.
