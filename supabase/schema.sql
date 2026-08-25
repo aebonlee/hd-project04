@@ -147,7 +147,14 @@ create trigger box_touch before update on public.box
 -- ----------------------------------------------------------------------------
 
 -- 모델 1대당 부피
-create or replace view public.model_volume as
+
+-- ⚠ 뷰에는 `with (security_invoker = true)` 를 붙인다.
+--   붙이지 않으면 뷰는 **만든 사람(postgres)의 권한**으로 돌아, 뷰를 읽을 수 있는
+--   사람이 밑에 깔린 표의 RLS 를 통째로 지나친다. 표만 잠그고 뷰를 안 잠그면 헛일이다.
+--   (hd-project03 에서 실제로 남의 업체 실사 결과가 뷰로 그대로 보였다.
+--    tests/server.test.js 의 "업체는 보고서 뷰로도 남의 자료를 볼 수 없다" 가 잡는다)
+--   security_invoker 는 PostgreSQL 15 부터. Supabase 는 15 이상이다.
+create or replace view public.model_volume with (security_invoker = true) as
 select mb.model,
        sum(mb.qty_per_unit * b.volume_m3) as volume_per_unit_m3,
        count(*)                            as box_kinds
@@ -156,7 +163,7 @@ join public.box b on b.code = mb.box_code
 group by mb.model;
 
 -- 월별 필요 컨테이너
-create or replace view public.monthly_container as
+create or replace view public.monthly_container with (security_invoker = true) as
 select
   p.plant_code,
   p.period,
@@ -176,7 +183,7 @@ cross join public.container_spec cs
 group by p.plant_code, p.period, cs.code, cs.target_fill, cs.inner_volume_m3;
 
 -- 박스 구성이 없는 모델 — 산출에서 빠진 것을 드러낸다
-create or replace view public.unmapped_models as
+create or replace view public.unmapped_models with (security_invoker = true) as
 select distinct p.plant_code, p.period, p.model, p.qty
 from public.plan p
 where not exists (select 1 from public.model_box mb where mb.model = p.model);
