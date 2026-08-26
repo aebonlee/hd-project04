@@ -1,0 +1,4 @@
+.DS_Store
+# 화면 연기 테스트가 playwright 를 여기에 받는다 (npm install --no-save).
+# 커밋되면 안 된다.
+node_modules/

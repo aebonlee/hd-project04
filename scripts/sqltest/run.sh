@@ -17,11 +17,19 @@ if [ -z "$PGBIN" ]; then
     [ -x "$c/initdb" ] && PGBIN="$c" && break
   done
 fi
+# 데비안·우분투(그리고 GitHub Actions 러너) — 여기서는 initdb 가 PATH 에 없다
+if [ -z "$PGBIN" ]; then
+  for c in $(ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V -r); do
+    [ -x "$c/initdb" ] && PGBIN="$c" && break
+  done
+fi
 if [ -z "$PGBIN" ] && command -v initdb >/dev/null 2>&1; then
   PGBIN="$(dirname "$(command -v initdb)")"
 fi
 if [ -z "$PGBIN" ]; then
-  echo "PostgreSQL 을 찾지 못했습니다. 'brew install postgresql@17' 후 다시 실행하세요." >&2
+  echo "PostgreSQL 을 찾지 못했습니다." >&2
+  echo "  macOS  : brew install postgresql@17" >&2
+  echo "  우분투 : sudo apt-get install -y postgresql" >&2
   exit 1
 fi
 
