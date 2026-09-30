@@ -53,6 +53,20 @@ echo "② schema.sql 적용"
 echo "③ 재적용 (재실행 안전한가)"
 "${PSQL[@]}" -f "$ROOT/supabase/schema.sql"
 
+echo "③-1 실행 위치 가드 — 공용 프로젝트 흔적(www_profiles·user_profiles)이 있으면 schema.sql 이 멈추는가"
+for t in www_profiles user_profiles; do
+  "${PSQL[@]}" -c "create table public.$t (id uuid)"
+  if out="$("${PSQL[@]}" -f "$ROOT/supabase/schema.sql" 2>&1)"; then
+    echo "FAIL  public.$t 가 있는데 schema.sql 이 멈추지 않았습니다" >&2; exit 1
+  fi
+  case "$out" in
+    *"공용 프로젝트입니다"*) ;;
+    *) echo "FAIL  schema.sql 이 가드가 아닌 다른 이유로 실패했습니다: $out" >&2; exit 1 ;;
+  esac
+  "${PSQL[@]}" -c "drop table public.$t"
+  echo "  OK   public.$t → schema.sql 실행 거부"
+done
+
 echo "④ 공통 불변식 검증"
 "${PSQL[@]}" -f "$ROOT/scripts/sqltest/10_common.local.sql" 2>&1 | sed 's/^psql:.*NOTICE:  //'
 
